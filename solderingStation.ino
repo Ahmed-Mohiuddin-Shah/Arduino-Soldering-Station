@@ -22,12 +22,15 @@
 float celsius0;
 float celsius1;
 
-enum menuItems = {
+enum menuItems
+{
     NOTHING,
     SOLDERING_IRON_SET_TEMP,
     HEATGUN_ELEMENT_SET_TEMP,
     HEATGUN_FAN_SET_SPEED
-}
+};
+
+menuItems currentMenuItem = NOTHING;
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -59,12 +62,12 @@ void setup()
 
     display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS); // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
 
-    // animatePikachu(3, 2);
+    animatePikachu();
 
     display.clearDisplay();
     display.setTextSize(2); // Draw 2X-scale text
     display.setTextColor(SSD1306_WHITE);
-} 
+}
 
 void loop()
 {
@@ -91,42 +94,56 @@ void loop()
 
     analogWrite(HEATGUN_FAN, 250);
 
+    display.clearDisplay();
+    display.drawFastVLine(64, 0, 54, SSD1306_WHITE);
+    display.drawFastHLine(0, 54, 128, SSD1306_WHITE);
+    display.setTextSize(1);
+    display.setCursor(0, 0);
+    display.println("Set Temp:");
+    display.setCursor(69, 0);
+    display.println("Set Temp:");
+    display.setCursor(0, 26);
+    display.println("Temp:");
+    display.setCursor(69, 26);
+    display.println("Temp:");
+    display.setCursor(0, 56);
+    display.println("Fan: ");
+    display.setCursor(25, 56);
+    display.println("100%");
+    display.setCursor(60, 56);
+    display.println("Set: ");
+    if (currentMenuItem == HEATGUN_FAN_SET_SPEED)
+    {
+        display.setTextColor(SSD1306_BLACK, SSD1306_WHITE);
+    }
+    display.setCursor(85, 56);
+    display.println("100%");
+    display.setTextColor(SSD1306_WHITE);
 
-        display.clearDisplay();
-        display.drawFastVLine(64, 0, 54, SSD1306_WHITE);
-        display.drawFastHLine(0, 54, 128, SSD1306_WHITE);
-        display.setTextSize(1);
-        display.setCursor(0, 0);
-        display.println("Set Temp:");
-        display.setCursor(69, 0);
-        display.println("Set Temp:");
-        display.setCursor(0, 26);
-        display.println("Temp:");
-        display.setCursor(69, 26);
-        display.println("Temp:");
-        display.setCursor(0, 56);
-        display.println("Fan: ");
-        display.setCursor(25, 56);
-        display.println("100%");
-        display.setCursor(60, 56);
-        display.println("Set: ");
-        display.setCursor(85, 56);
-        display.println("100%");
-        
-        display.setTextSize(2);
-        display.setCursor(0, 10);
-        display.println("50");
-        display.setCursor(69, 10);
-        display.println("50");
-        display.setCursor(0, 36);
-        display.println((int)(celsius0));
-        display.setCursor(69, 36);
-        display.println((int)(celsius1));
-        display.display();
-
+    display.setTextSize(2);
+    if (currentMenuItem == SOLDERING_IRON_SET_TEMP)
+    {
+        display.setTextColor(SSD1306_BLACK, SSD1306_WHITE);
+    }
+    display.setCursor(0, 10);
+    display.println("50");
+    display.setTextColor(SSD1306_WHITE);
+    if (currentMenuItem == HEATGUN_ELEMENT_SET_TEMP)
+    {
+        display.setTextColor(SSD1306_BLACK, SSD1306_WHITE);
+    }
+    display.setCursor(69, 10);
+    display.println("50");
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(0, 36);
+    display.println((int)(celsius0));
+    display.setCursor(69, 36);
+    display.println((int)(celsius1));
+    display.display();
 }
 
-void animatePikachu() {
+void animatePikachu()
+{
     animatePikachu(1, 1);
 }
 
@@ -148,10 +165,9 @@ void animatePikachu(int repeat, int speed)
             display.clearDisplay();
             display.drawBitmap(32, 0, frame[j], 64, 64, 1); // this displays each frame hex value
             display.display();
-            delay(140*speed);
+            delay(140 * speed);
         }
     }
-    
 }
 
 void checkButton()
@@ -165,5 +181,24 @@ void checkButton()
     else
     {
         prevState = prevState ? false : true;
+
+        switch (currentMenuItem)
+        {
+        case NOTHING:
+            currentMenuItem = SOLDERING_IRON_SET_TEMP;
+            break;
+        case SOLDERING_IRON_SET_TEMP:
+            currentMenuItem = HEATGUN_ELEMENT_SET_TEMP;
+            break;
+        case HEATGUN_ELEMENT_SET_TEMP:
+            currentMenuItem = HEATGUN_FAN_SET_SPEED;
+            break;
+        case HEATGUN_FAN_SET_SPEED:
+            currentMenuItem = NOTHING;
+            break;
+        default:
+            currentMenuItem = NOTHING;
+            break;
+        }
     }
 }
