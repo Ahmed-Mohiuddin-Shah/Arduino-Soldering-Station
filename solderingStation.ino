@@ -19,6 +19,9 @@
 #define CS0 10
 #define CS1 8
 
+float celsius0;
+float celsius1;
+
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define SCREEN_ADDRESS 0x3C
@@ -49,21 +52,20 @@ void setup()
 
     display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS); // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
 
-    animatePikachu(3);
-    delay(2000);
+    // animatePikachu(3, 2);
 
     display.clearDisplay();
     display.setTextSize(2); // Draw 2X-scale text
     display.setTextColor(SSD1306_WHITE);
-}
+} 
 
 void loop()
 {
 
-    float celsius = tcouple0.readTempC();
-    float celsius2 = tcouple1.readTempC();
+    celsius0 = tcouple0.readTempC();
+    celsius1 = tcouple1.readTempC();
 
-    if (celsius < 50)
+    if (celsius0 < 50)
     {
         analogWrite(SOLDERING_IRON, 255);
     }
@@ -71,7 +73,7 @@ void loop()
     {
         analogWrite(SOLDERING_IRON, 0);
     }
-    if (celsius2 < 50)
+    if (celsius1 < 50)
     {
         analogWrite(HEATGUN_ELEMENT, 255);
     }
@@ -82,20 +84,39 @@ void loop()
 
     analogWrite(HEATGUN_FAN, 250);
 
-    if (!EncoderButtonState)
-    {
+
         display.clearDisplay();
-        display.setCursor(10, 0);
-        display.setCursor(10, 20);
-        display.println(celsius);
-        display.setCursor(10, 40);
-        display.println(celsius2);
+        display.drawFastVLine(64, 0, 54, SSD1306_WHITE);
+        display.drawFastHLine(0, 54, 128, SSD1306_WHITE);
+        display.setTextSize(1);
+        display.setCursor(0, 0);
+        display.println("Set Temp:");
+        display.setCursor(69, 0);
+        display.println("Set Temp:");
+        display.setCursor(0, 26);
+        display.println("Temp:");
+        display.setCursor(69, 26);
+        display.println("Temp:");
+        display.setCursor(0, 56);
+        display.println("Fan: ");
+        display.setCursor(25, 56);
+        display.println("100%");
+        display.setCursor(60, 56);
+        display.println("Set: ");
+        display.setCursor(85, 56);
+        display.println("100%");
+        
+        display.setTextSize(2);
+        display.setCursor(0, 10);
+        display.println("50");
+        display.setCursor(69, 10);
+        display.println("50");
+        display.setCursor(0, 36);
+        display.println((int)(celsius0));
+        display.setCursor(69, 36);
+        display.println((int)(celsius1));
         display.display();
-    }
-    else
-    {
-        runMenu();
-    }
+
 }
 
 void animatePikachu() {
