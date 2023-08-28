@@ -3,17 +3,16 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#define ENCODER_DO_NOT_USE_INTERRUPTS
 #include <Encoder.h>
 
 #include <MAX6675.h>
 #include "pikachu.h"
 #include "menu.h"
 
-#define ENCODER_CLK A2
-#define ENCODER_DT A3
-#define ENCODER_BUTTON 2
-#define HEATGUN_FAN 3
+#define ENCODER_CLK 2
+#define ENCODER_DT 3
+#define ENCODER_BUTTON A2
+#define HEATGUN_FAN 9
 #define SOLDERING_IRON 5
 #define HEATGUN_ELEMENT 6
 #define CS0 10
@@ -21,6 +20,11 @@
 
 float celsius0;
 float celsius1;
+
+int solderingIronSetTemp = 0;
+int heatGunSetTemp = 0;
+int heatGunFanSetSpeed = 254;
+unsigned const int fanTopPWM = 254;
 
 enum menuItems
 {
@@ -30,7 +34,7 @@ enum menuItems
     HEATGUN_FAN_SET_SPEED
 };
 
-menuItems currentMenuItem = NOTHING;
+menuItems currentMenuItem = SOLDERING_IRON_SET_TEMP;
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -50,7 +54,6 @@ void setup()
 {
 
     pinMode(ENCODER_BUTTON, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(ENCODER_BUTTON), checkButton, CHANGE);
 
     pinMode(HEATGUN_FAN, OUTPUT);
     analogWrite(HEATGUN_FAN, 255);
@@ -71,11 +74,37 @@ void setup()
 
 void loop()
 {
+    if (digitalRead(ENCODER_BUTTON)==LOW) {
+      delay(20);
+      if (digitalRead(ENCODER_BUTTON)==LOW) {
+        updateButtonState();
+      }
+    }
+
+    if(currentMenuItem==SOLDERING_IRON_SET_TEMP) {
+        solderingIronSetTemp += encoder.readAndReset();
+    }
+    else if (currentMenuItem == HEATGUN_ELEMENT_SET_TEMP)
+    {
+        heatGunSetTemp += encoder.readAndReset();
+    }
+    else if (currentMenuItem == HEATGUN_FAN_SET_SPEED)
+    {
+        heatGunFanSetSpeed += encoder.readAndReset();
+        if (heatGunFanSetSpeed >= 255)
+        {
+            heatGunFanSetSpeed = 254;
+        }
+        if (heatGunFanSetSpeed <= 0)
+        {
+            heatGunFanSetSpeed = 0;
+        }
+    }
 
     celsius0 = tcouple0.readTempC();
     celsius1 = tcouple1.readTempC();
 
-    if (celsius0 < 50)
+    if (celsius0 < solderingIronSetTemp)
     {
         analogWrite(SOLDERING_IRON, 255);
     }
@@ -83,7 +112,7 @@ void loop()
     {
         analogWrite(SOLDERING_IRON, 0);
     }
-    if (celsius1 < 50)
+    if (celsius1 < heatGunSetTemp)
     {
         analogWrite(HEATGUN_ELEMENT, 255);
     }
@@ -92,7 +121,7 @@ void loop()
         analogWrite(HEATGUN_ELEMENT, 0);
     }
 
-    analogWrite(HEATGUN_FAN, 250);
+    analogWrite(HEATGUN_FAN, heatGunFanSetSpeed);
 
     display.clearDisplay();
     display.drawFastVLine(64, 0, 54, SSD1306_WHITE);
@@ -108,16 +137,12 @@ void loop()
     display.println("Temp:");
     display.setCursor(0, 56);
     display.println("Fan: ");
-    display.setCursor(25, 56);
-    display.println("100%");
-    display.setCursor(60, 56);
-    display.println("Set: ");
     if (currentMenuItem == HEATGUN_FAN_SET_SPEED)
     {
         display.setTextColor(SSD1306_BLACK, SSD1306_WHITE);
     }
-    display.setCursor(85, 56);
-    display.println("100%");
+    display.setCursor(25, 56);
+    display.println(String((((float)heatGunFanSetSpeed/fanTopPWM)*100)) + "%");
     display.setTextColor(SSD1306_WHITE);
 
     display.setTextSize(2);
@@ -126,14 +151,14 @@ void loop()
         display.setTextColor(SSD1306_BLACK, SSD1306_WHITE);
     }
     display.setCursor(0, 10);
-    display.println("50");
+    display.println(solderingIronSetTemp);
     display.setTextColor(SSD1306_WHITE);
     if (currentMenuItem == HEATGUN_ELEMENT_SET_TEMP)
     {
         display.setTextColor(SSD1306_BLACK, SSD1306_WHITE);
     }
     display.setCursor(69, 10);
-    display.println("50");
+    display.println(heatGunSetTemp);
     display.setTextColor(SSD1306_WHITE);
     display.setCursor(0, 36);
     display.println((int)(celsius0));
@@ -170,7 +195,7 @@ void animatePikachu(int repeat, int speed)
     }
 }
 
-void checkButton()
+void updateButtonState()
 {
     static bool prevState = false;
 
