@@ -22,6 +22,13 @@
 float celsius0;
 float celsius1;
 
+enum menuItems = {
+    NOTHING,
+    SOLDERING_IRON_SET_TEMP,
+    HEATGUN_ELEMENT_SET_TEMP,
+    HEATGUN_FAN_SET_SPEED
+}
+
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define SCREEN_ADDRESS 0x3C
