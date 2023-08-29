@@ -7,7 +7,6 @@
 
 #include <MAX6675.h>
 #include "pikachu.h"
-#include "menu.h"
 
 #define ENCODER_CLK 2
 #define ENCODER_DT 3
@@ -15,6 +14,7 @@
 #define HEATGUN_FAN 9
 #define SOLDERING_IRON 5
 #define HEATGUN_ELEMENT 6
+#define REED_SWITCH 7
 #define CS0 10
 #define CS1 8
 
@@ -66,7 +66,7 @@ int prevEncoderReading = encoder.read();
 void setup()
 {
     pinMode(ENCODER_BUTTON, INPUT_PULLUP);
-
+    pinMode(REED_SWITCH, INPUT_PULLUP);
     pinMode(HEATGUN_FAN, OUTPUT);
     analogWrite(HEATGUN_FAN, 255);
 
@@ -180,6 +180,15 @@ void logic()
         if (digitalRead(ENCODER_BUTTON) == LOW)
         {
             updateButtonState();
+        }
+    }
+
+    if (digitalRead(REED_SWITCH) == LOW)
+    {
+        delay(100);
+        if (digitalRead(REED_SWITCH) == LOW)
+        {
+            
         }
     }
 
