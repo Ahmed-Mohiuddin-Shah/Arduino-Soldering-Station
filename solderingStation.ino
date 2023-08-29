@@ -183,25 +183,31 @@ void logic()
         }
     }
 
-    if (currentMenuItem == SOLDERING_IRON_SET_TEMP)
+    if (currentPreset == CUSTOM)
     {
-        solderingIronSetTemp += encoder.readAndReset() / 2;
-    }
-    else if (currentMenuItem == HEATGUN_ELEMENT_SET_TEMP)
-    {
-        heatGunSetTemp += encoder.readAndReset() / 2;
-    }
-    else if (currentMenuItem == HEATGUN_FAN_SET_SPEED)
-    {
-        heatGunFanSetSpeed += encoder.readAndReset() / 2;
-        if (heatGunFanSetSpeed >= 255)
+        if (currentMenuItem == SOLDERING_IRON_SET_TEMP)
         {
-            heatGunFanSetSpeed = 254;
+            solderingIronSetTemp += encoder.readAndReset() / 2;
         }
-        if (heatGunFanSetSpeed <= 0)
+        else if (currentMenuItem == HEATGUN_ELEMENT_SET_TEMP)
         {
-            heatGunFanSetSpeed = 0;
+            heatGunSetTemp += encoder.readAndReset() / 2;
         }
+        else if (currentMenuItem == HEATGUN_FAN_SET_SPEED)
+        {
+            heatGunFanSetSpeed += encoder.readAndReset() / 2;
+            if (heatGunFanSetSpeed >= 255)
+            {
+                heatGunFanSetSpeed = 254;
+            }
+            if (heatGunFanSetSpeed <= 0)
+            {
+                heatGunFanSetSpeed = 0;
+            }
+        }
+    }
+    else {
+        encoder.readAndReset();
     }
 
     celsius0 = tcouple0.readTempC();
@@ -224,7 +230,13 @@ void logic()
         analogWrite(HEATGUN_ELEMENT, 0);
     }
 
-    analogWrite(HEATGUN_FAN, heatGunFanSetSpeed);
+    if (celsius1 > 50)
+    {
+        analogWrite(HEATGUN_FAN, heatGunFanSetSpeed);
+    }
+    else {
+        analogWrite(HEATGUN_FAN, 0);
+    }
 }
 
 void animatePikachu()
@@ -288,7 +300,6 @@ void presetsLogic()
     static unsigned int count = 0;
     if (currentMenuItem == PRESETS)
     {
-
         if (prevEncoderReading != encoder.read())
         {
             prevEncoderReading = encoder.read();
