@@ -324,6 +324,8 @@ void presetsLogic()
                 }
 
                 count = 0;
+                prevEncoderReading = 0;
+                encoder.readAndReset();
             }
         }
     }
