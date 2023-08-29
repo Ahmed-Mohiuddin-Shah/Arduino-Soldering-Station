@@ -61,6 +61,8 @@ Encoder encoder(ENCODER_CLK, ENCODER_DT);
 
 bool EncoderButtonState = false;
 
+int prevEncoderReading = encoder.read();
+
 void setup()
 {
     pinMode(ENCODER_BUTTON, INPUT_PULLUP);
@@ -84,63 +86,11 @@ void setup()
 
 void loop()
 {
+    presetsLogic();
 
     logic();
 
     graphics();
-}
-
-void animatePikachu()
-{
-    animatePikachu(1, 1);
-}
-
-void animatePikachu(int repeat)
-{
-    animatePikachu(repeat, 1);
-}
-
-void animatePikachu(int repeat, int speed)
-{
-
-    display.setTextSize(1);
-    display.setTextColor(SSD1306_WHITE);
-
-    for (int i = 0; i < repeat; i++)
-    {
-        for (int j = 0; j < 7; j++)
-        {
-            display.clearDisplay();
-            display.drawBitmap(32, 0, frame[j], 64, 64, 1); // this displays each frame hex value
-            display.display();
-            delay(140 * speed);
-        }
-    }
-}
-
-void updateButtonState()
-{
-
-    switch (currentMenuItem)
-    {
-    case NOTHING:
-        currentMenuItem = SOLDERING_IRON_SET_TEMP;
-        break;
-    case SOLDERING_IRON_SET_TEMP:
-        currentMenuItem = HEATGUN_ELEMENT_SET_TEMP;
-        break;
-    case HEATGUN_ELEMENT_SET_TEMP:
-        currentMenuItem = HEATGUN_FAN_SET_SPEED;
-        break;
-    case HEATGUN_FAN_SET_SPEED:
-        currentMenuItem = PRESETS;
-        break;
-    case PRESETS:
-        currentMenuItem = NOTHING;
-    default:
-        currentMenuItem = NOTHING;
-        break;
-    }
 }
 
 void graphics()
@@ -166,6 +116,38 @@ void graphics()
     }
     display.setCursor(25, 56);
     display.println(String((int)((((float)heatGunFanSetSpeed / fanTopPWM) * 100))) + "%");
+    display.setTextColor(SSD1306_WHITE);
+
+    if (currentMenuItem == PRESETS)
+    {
+        display.setTextColor(SSD1306_BLACK, SSD1306_WHITE);
+    }
+    display.setCursor(53, 56);
+    switch (currentPreset)
+    {
+    case SOLDERING:
+        display.println("   Solder   ");
+        break;
+    case HEATGUN:
+        display.println("  Heat Gun  ");
+        break;
+    case AIR_SMD:
+        display.println(" Air Rework ");
+        break;
+    case SOLDERING_AND_HEATGUN:
+        display.println("Full Station");
+        break;
+    case VINYL:
+        display.println("   Vinyl    ");
+        break;
+    case CUSTOM:
+        display.println("   Custom   ");
+        break;
+    default:
+        display.println("   Custom   ");
+        break;
+    }
+
     display.setTextColor(SSD1306_WHITE);
 
     display.setTextSize(2);
@@ -243,4 +225,106 @@ void logic()
     }
 
     analogWrite(HEATGUN_FAN, heatGunFanSetSpeed);
+}
+
+void animatePikachu()
+{
+    animatePikachu(1, 1);
+}
+
+void animatePikachu(int repeat)
+{
+    animatePikachu(repeat, 1);
+}
+
+void animatePikachu(int repeat, int speed)
+{
+
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+
+    for (int i = 0; i < repeat; i++)
+    {
+        for (int j = 0; j < 7; j++)
+        {
+            display.clearDisplay();
+            display.drawBitmap(32, 0, frame[j], 64, 64, 1); // this displays each frame hex value
+            display.display();
+            delay(140 * speed);
+        }
+    }
+}
+
+void updateButtonState()
+{
+
+    switch (currentMenuItem)
+    {
+    case NOTHING:
+        currentMenuItem = SOLDERING_IRON_SET_TEMP;
+        break;
+    case SOLDERING_IRON_SET_TEMP:
+        currentMenuItem = HEATGUN_ELEMENT_SET_TEMP;
+        break;
+    case HEATGUN_ELEMENT_SET_TEMP:
+        currentMenuItem = HEATGUN_FAN_SET_SPEED;
+        break;
+    case HEATGUN_FAN_SET_SPEED:
+        currentMenuItem = PRESETS;
+        break;
+    case PRESETS:
+        currentMenuItem = NOTHING;
+        encoder.readAndReset();
+        break;
+    default:
+        currentMenuItem = NOTHING;
+        encoder.readAndReset();
+        break;
+    }
+}
+
+void presetsLogic()
+{
+    static unsigned int count = 0;
+    if (currentMenuItem == PRESETS)
+    {
+
+        if (prevEncoderReading != encoder.read())
+        {
+            prevEncoderReading = encoder.read();
+            if (count < 4)
+            {
+                count++;
+            }
+            else
+            {
+                switch (currentPreset)
+                {
+                case SOLDERING:
+                    currentPreset = HEATGUN;
+                    break;
+                case HEATGUN:
+                    currentPreset = AIR_SMD;
+                    break;
+                case AIR_SMD:
+                    currentPreset = SOLDERING_AND_HEATGUN;
+                    break;
+                case SOLDERING_AND_HEATGUN:
+                    currentPreset = VINYL;
+                    break;
+                case VINYL:
+                    currentPreset = CUSTOM;
+                    break;
+                case CUSTOM:
+                    currentPreset = SOLDERING;
+                    break;
+                default:
+                    currentPreset = CUSTOM;
+                    break;
+                }
+
+                count = 0;
+            }
+        }
+    }
 }
