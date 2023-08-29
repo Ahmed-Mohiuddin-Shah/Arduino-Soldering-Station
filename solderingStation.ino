@@ -257,7 +257,7 @@ void animatePikachu(int repeat, int speed)
 
 void updateButtonState()
 {
-
+    encoder.readAndReset();
     switch (currentMenuItem)
     {
     case NOTHING:
