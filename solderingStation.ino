@@ -59,8 +59,6 @@ MAX6675 tcouple1(CS1);
 
 Encoder encoder(ENCODER_CLK, ENCODER_DT);
 
-int pos = 250;
-
 bool EncoderButtonState = false;
 
 void setup()
