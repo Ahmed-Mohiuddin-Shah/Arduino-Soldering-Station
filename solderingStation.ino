@@ -31,10 +31,23 @@ enum menuItems
     NOTHING,
     SOLDERING_IRON_SET_TEMP,
     HEATGUN_ELEMENT_SET_TEMP,
-    HEATGUN_FAN_SET_SPEED
+    HEATGUN_FAN_SET_SPEED,
+    PRESETS
 };
 
-menuItems currentMenuItem = SOLDERING_IRON_SET_TEMP;
+enum presets 
+{
+    SOLDERING,
+    HEATGUN,
+    AIR_SMD,
+    SOLDERING_AND_HEATGUN,
+    VINYL,
+    CUSTOM
+};
+
+menuItems currentMenuItem = NOTHING;
+
+presets currentPreset = CUSTOM;
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -74,23 +87,24 @@ void setup()
 
 void loop()
 {
+
     if (digitalRead(ENCODER_BUTTON)==LOW) {
-      delay(20);
+      delay(100);
       if (digitalRead(ENCODER_BUTTON)==LOW) {
         updateButtonState();
       }
     }
 
     if(currentMenuItem==SOLDERING_IRON_SET_TEMP) {
-        solderingIronSetTemp += encoder.readAndReset();
+        solderingIronSetTemp += encoder.readAndReset()/2;
     }
     else if (currentMenuItem == HEATGUN_ELEMENT_SET_TEMP)
     {
-        heatGunSetTemp += encoder.readAndReset();
+        heatGunSetTemp += encoder.readAndReset()/2;
     }
     else if (currentMenuItem == HEATGUN_FAN_SET_SPEED)
     {
-        heatGunFanSetSpeed += encoder.readAndReset();
+        heatGunFanSetSpeed += encoder.readAndReset()/2;
         if (heatGunFanSetSpeed >= 255)
         {
             heatGunFanSetSpeed = 254;
@@ -125,6 +139,7 @@ void loop()
 
     display.clearDisplay();
     display.drawFastVLine(64, 0, 54, SSD1306_WHITE);
+    display.drawFastVLine(50, 54, 10, SSD1306_WHITE);
     display.drawFastHLine(0, 54, 128, SSD1306_WHITE);
     display.setTextSize(1);
     display.setCursor(0, 0);
@@ -142,7 +157,7 @@ void loop()
         display.setTextColor(SSD1306_BLACK, SSD1306_WHITE);
     }
     display.setCursor(25, 56);
-    display.println(String((((float)heatGunFanSetSpeed/fanTopPWM)*100)) + "%");
+    display.println(String((int)((((float)heatGunFanSetSpeed/fanTopPWM)*100))) + "%");
     display.setTextColor(SSD1306_WHITE);
 
     display.setTextSize(2);
@@ -197,15 +212,7 @@ void animatePikachu(int repeat, int speed)
 
 void updateButtonState()
 {
-    static bool prevState = false;
 
-    if (prevState == EncoderButtonState)
-    {
-        EncoderButtonState = EncoderButtonState ? false : true;
-    }
-    else
-    {
-        prevState = prevState ? false : true;
 
         switch (currentMenuItem)
         {
@@ -219,11 +226,13 @@ void updateButtonState()
             currentMenuItem = HEATGUN_FAN_SET_SPEED;
             break;
         case HEATGUN_FAN_SET_SPEED:
-            currentMenuItem = NOTHING;
+            currentMenuItem = PRESETS;
             break;
+        case PRESETS:
+            currentMenuItem = NOTHING;
         default:
             currentMenuItem = NOTHING;
             break;
         }
-    }
+
 }
