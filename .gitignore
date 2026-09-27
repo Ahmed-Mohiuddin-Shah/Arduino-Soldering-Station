@@ -1,0 +1,27 @@
+# PlatformIO
+.pio
+.pioenvs
+.piolibdeps
+.clang_complete
+.gcc-flags.json
+.vscode/.browse.c_cpp.db*
+.vscode/c_cpp_properties.json
+.vscode/launch.json
+.vscode/ipch
+.idea
+*.pyc
+__pycache__/
+
+# Build / IDE leftovers
+*.elf
+*.hex
+*.bin
+*.map
+*.o
+*.a
+*.d
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
